@@ -2247,6 +2247,14 @@ typename config::message_type::ptr connection<config>::write_pop()
     return msg;
 }
 
+inline std::string addEllipsis(const std::string& str, size_t maxLength) {
+    if (str.length() <= maxLength) {
+        return str;
+    } else {
+        return str.substr(0, maxLength) + "...";
+    }
+}
+
 template <typename config>
 void connection<config>::log_open_result()
 {
@@ -2280,10 +2288,10 @@ void connection<config>::log_open_result()
     }
 
     // URI
-    s << (m_uri ? m_uri->get_resource() : "NULL") << " ";
+    s << (m_uri ? addEllipsis(m_uri->get_resource(),64) : "-");
 
     // Status code
-    s << m_response.get_status_code();
+    s << " " << m_response.get_status_code();
 
     m_alog->write(log::alevel::connect,s.str());
 }
@@ -2313,7 +2321,7 @@ void connection<config>::log_fail_result()
     s << "WebSocket Connection ";
 
     // Remote endpoint address & WebSocket version
-    s << transport_con_type::get_remote_endpoint();
+    s << addEllipsis(transport_con_type::get_remote_endpoint(), 64); // otherwise this leaks the token
     if (version < 0) {
         s << " -";
     } else {
@@ -2330,7 +2338,7 @@ void connection<config>::log_fail_result()
     }
 
     // URI
-    s << (m_uri ? m_uri->get_resource() : "-");
+    s << (m_uri ? addEllipsis(m_uri->get_resource(),64) : "-");
 
     // HTTP Status code
     s  << " " << m_response.get_status_code();
